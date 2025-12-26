@@ -104,3 +104,19 @@ reduce power consumption
 nix-shell -p powertop --run "sudo powertop --auto-tune"
 sudo nix --extra-experimental-features "nix-command flakes" run github:notthebee/AutoASPM
 ```
+
+
+### Setup github
+
+Create links with new structure
+```bash
+# Backup original
+sudo mv /etc/nixos/configuration.nix /etc/nixos/configuration.nix.backup
+sudo mv /etc/nixos/hardware-configuration.nix /etc/nixos/hardware-configuration.nix.backup
+
+# Create symlink
+sudo ln -s ~/.dotfiles/system/configuration.nix /etc/nixos/configuration.nix
+sudo ln -s ~/.dotfiles/system/hardware-configuration.nix /etc/nixos/hardware-configuration.nix
+sudo ln -s ~/.dotfiles/users/anton/home.nix ~/.config/nixpkgs/home.nix
+```
+https://www.youtube.com/watch?v=Dy3KHMuDNS8
