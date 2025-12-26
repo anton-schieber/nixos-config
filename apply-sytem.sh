@@ -1,5 +1,4 @@
 #!/bin/sh
-pushd ~/.dotfiles
+pushd ~/.config/nix
 sudo nixos-rebuild switch -I nixos-config=./system/configuration.nix
 popd
- sudo mv /etc/nixos/hardware-configuration.nix /etc/nixos/hardware-configuration.nix.backup

@@ -13,7 +13,7 @@
 
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
-  home-manager.users.anton = import ./home.nix;
+  home-manager.users.anton = import ../users/anton/home.nix;
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
