@@ -10,7 +10,7 @@
 #   explicit confirmation before invoking disko.
 #
 #   This script does not configure runtime mounts, snapRAID, or mergerfs. Those steps must
-#   be performed separately in the host storage configuration after provisioning.
+#   be performed separately in the machine storage configuration after provisioning.
 #
 # Usage:
 #   provision-new-disk.sh -d /dev/disk/by-id/XXXX [options]

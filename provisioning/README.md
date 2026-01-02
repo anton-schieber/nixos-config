@@ -31,7 +31,7 @@ All provisioning tools are designed with the following rules:
 - They require stable /dev/disk/by-id paths
 - They prompt for confirmation unless explicitly bypassed
 - They operate on exactly one disk per invocation
-- They must never be imported into host configurations
+- They must never be imported into machine configurations
 
 You should assume that every provisioning command will irreversibly wipe the target disk.
 
@@ -56,7 +56,7 @@ Steps:
     ```bash
     sudo nixos-generate-config --root /mnt
     ```
-4. Copy the generated hardware configuration into the appropriate host directory and
+4. Copy the generated hardware configuration into the appropriate machine directory and
    proceed with nixos-install using the flake output.
 
 ## Data disk provisioning
@@ -84,7 +84,7 @@ Steps:
     ```bash
     lsblk -f
     ```
-5. Add the disk to runtime configuration (`hosts/<name>/storage.nix`)
+5. Add the disk to runtime configuration (`machines/<name>/storage.nix`)
 6. Update snapRAID and mergerfs configuration as required and rebuild the system.
 
 ## Notes
@@ -93,7 +93,7 @@ Provisioning does not:
 - Configure runtime mounts
 - Configure snapRAID
 - Configure mergerfs
-- Modify host configuration
+- Modify machine configuration
 - Persist any state in hardware-configuration.nix beyond the boot disk
 
 Those concerns are handled declaratively in the main NixOS configuration.
