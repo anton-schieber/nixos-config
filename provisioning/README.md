@@ -49,12 +49,12 @@ Steps:
     ```
 2. Provision the boot SSD (note, for a full list of options, run with the `-h` flag)
     ```bash
-    provisioning/scripts/provision-boot-ssd.sh -d /dev/disk/by-id/nvme-XXXX
+    sudo provisioning/scripts/provision-boot-ssd.sh -d /dev/disk/by-id/nvme-XXXX
     ```
-3. Generate hardware configuration (note, after the boot disk is provisionedm it is
-   mounted under `/mnt`):
+3. Generate hardware configuration (note, after the boot disk is provisioned it is mounted
+   under `/mnt`):
     ```bash
-    nixos-generate-config --root /mnt
+    sudo nixos-generate-config --root /mnt
     ```
 4. Copy the generated hardware configuration into the appropriate host directory and
    proceed with nixos-install using the flake output.
@@ -78,7 +78,7 @@ Steps:
     ```
 3. Provision the disk (note, for a full list of options, run with the `-h` flag)
     ```bash
-    provisioning/scripts/provision-new-disk.sh -d /dev/disk/by-id/XXXX -b 1
+    sudo provisioning/scripts/provision-new-disk.sh -d /dev/disk/by-id/XXXX -b 1
     ```
 4. Record the filesystem UUID
     ```bash
