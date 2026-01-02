@@ -44,6 +44,7 @@
                 format = "vfat";
                 mountpoint = "/boot";
                 mountOptions = [ "fmask=0077" "dmask=0077" ];
+                extraArgs = [ "-n" "EFI" ];
               };
             };
 
@@ -52,6 +53,7 @@
               content = {
                 type = "swap";
                 resumeDevice = true;
+                extraArgs = [ "-L" "swap" ];
               };
             };
 
@@ -59,7 +61,7 @@
               size = "100%";
               content = {
                 type = "btrfs";
-                extraArgs = [ "-f" ];
+                extraArgs = [ "-f" "-L" "root" ];
                 subvolumes = {
                   "@" = {
                     mountpoint = "/";
