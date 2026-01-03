@@ -9,8 +9,6 @@
 #   bay1.nix, bay2.nix, etc.
 #
 
-{ lib }:
-
 bayNumber:
 
 { lib, ... }:
