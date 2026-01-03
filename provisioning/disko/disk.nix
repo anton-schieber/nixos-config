@@ -5,39 +5,25 @@
 #   destructive and must never be imported into a running host configuration.
 #
 #   The module wipes the target disk, creates a fresh GPT partition table, formats the
-#   disk with a single ext4 filesystem, and mounts it at /srv/disks/nas-bay{N} or
-#   /mnt/srv/disks/nas-bay{N} during installation (to align with the installation root).
+#   disk with a single ext4 filesystem, and mounts it at /srv/disks/nas-bay{N}.
 #
 #   The ext4 filesystem is labelled based on the NAS bay position (slots 1-8).
 #
 #   Disk identity is provided externally via the disk attrset:
-#     - disk.device    : stable by-id path of the new disk to be wiped (required)
-#     - disk.bay       : integer bay number (1-8), required
-#     - disk.atInstall : boolean, mount at /mnt/srv/disks/nas-bay{N} (default: false)
+#     - disk.device : stable by-id path of the new disk to be wiped (required)
+#     - disk.bay    : integer bay number (1-8), required
 #
 # Usage:
-#   After installation:
-#       sudo nix
-#           --experimental-features "nix-command flakes"
-#           run github:nix-community/disko --
-#           --mode disko
-#           --arg disk '{ device = "/dev/disk/by-id/XXXX"; bay = 3; }'
-#           ./modules/disko/disk.nix
-#
-#   During installation:
-#       sudo nix
-#           --experimental-features "nix-command flakes"
-#           run github:nix-community/disko --
-#           --mode disko
-#           --arg disk '{ device = "/dev/disk/by-id/XXXX"; bay = 3; atInstall = true; }'
-#           ./modules/disko/disk.nix
+#   sudo nix
+#       --experimental-features "nix-command flakes"
+#       run github:nix-community/disko --
+#       --mode disko
+#       --arg disk '{ device = "/dev/disk/by-id/XXXX"; bay = 3; }'
+#       ./modules/disko/disk.nix
 #
 
 { disk, lib, ... }:
 
-let
-  mountPrefix = if disk.atInstall or false then "/mnt" else "";
-in
 {
   assertions = [
     {
@@ -67,7 +53,7 @@ in
               content = {
                 type = "filesystem";
                 format = "ext4";
-                mountpoint = "${mountPrefix}/srv/disks/nas-bay${toString disk.bay}";
+                mountpoint = "/srv/disks/nas-bay${toString disk.bay}";
                 mountOptions = [ "defaults" "noatime" "nofail" ];
                 extraArgs = [ "-L" "nas-bay${toString disk.bay}" ];
               };

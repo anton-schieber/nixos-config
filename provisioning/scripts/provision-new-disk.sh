@@ -18,17 +18,13 @@
 #   Options:
 #       --disk <path>  Required. New disk device path (must be a stable by-id path).
 #       --bay <1-8>    Required. NAS bay number used to label the filesystem (nas-bayN).
-#       --at-install   Optional. Provision during installation (mount at /mnt/srv/...).
 #       --yes          Skip interactive confirmation prompt.
 #       --dry-run      Dry-run. Print the disko command and exit without making changes.
 #       --help         Show usage information.
 #
 # Notes:
 #   - The target disk will be irreversibly wiped.
-#   - The filesystem is mounted at /srv/disks/nas-bay{N} (or /mnt/srv/... if
-#     --at-install).
-#   - Mount options: defaults, noatime, nofail
-#   - Record the resulting filesystem UUID and add it to runtime storage configuration.
+#   - Ensure all non-target disks are disconnected if possible.
 #
 
 set -euo pipefail
@@ -50,14 +46,12 @@ usage() {
         "Options:" \
         "  --disk <path>  Required. New disk device path (must be a stable by-id path)." \
         "  --bay <1-8>    Required. NAS bay number (filesystem label: nas-bayN)." \
-        "  --at-install   Optional. Provision during install (mount at /mnt/srv/...)." \
         "  --yes          Skip interactive confirmation prompt." \
         "  --dry-run      Dry-run. Print the disko command and exit." \
         "  --help         Show usage information." \
         "" \
         "Examples:" \
-        "  provisioning/scripts/provision-new-disk.sh --disk /dev/disk/by-id/XXXX --bay 3" \
-        "  provisioning/scripts/provision-new-disk.sh --disk /dev/disk/by-id/XXXX --bay 3 --at-install"
+        "  provisioning/scripts/provision-new-disk.sh --disk /dev/disk/by-id/XXXX --bay 3"
     exit 1
 }
 
@@ -98,7 +92,6 @@ confirm() {
 
 DISK_PATH=""
 BAY=""
-AT_INSTALL=0
 YES=0
 DRYRUN=0
 
@@ -114,10 +107,6 @@ while [[ $# -gt 0 ]]; do
             [ -n "${2:-}" ] || { usage; die "Option --bay requires an argument."; }
             BAY="$2"
             shift 2
-            ;;
-        --at-install)
-            AT_INSTALL=1
-            shift
             ;;
         --yes)
             YES=1
@@ -160,15 +149,6 @@ case "$BAY" in
     *) usage; die "Invalid bay '$BAY'. Must be an integer 1-8." ;;
 esac
 
-# Build disk argument
-if [ "$AT_INSTALL" -eq 1 ]; then
-    DISK_ARG="{ device = \"${DISK_PATH}\"; bay = ${BAY}; atInstall = true; }"
-    MOUNT_PATH="/mnt/srv/disks/nas-bay${BAY}"
-else
-    DISK_ARG="{ device = \"${DISK_PATH}\"; bay = ${BAY}; }"
-    MOUNT_PATH="/srv/disks/nas-bay${BAY}"
-fi
-
 # Create disko command
 CMD=(
     sudo nix
@@ -176,7 +156,7 @@ CMD=(
         run github:nix-community/disko
         --
         --mode disko
-        --arg disk "$DISK_ARG"
+        --arg disk "{ device = \"${DISK_PATH}\"; bay = ${BAY}; }"
         "$DISKO_FILE"
 )
 
@@ -185,7 +165,6 @@ echo "New data disk provisioning"
 echo "  Repo root  : $REPO_ROOT"
 echo "  Disk       : $DISK_PATH"
 echo "  Bay        : $BAY (label nas-bay$BAY)"
-echo "  Mount path : $MOUNT_PATH"
 echo "  Disko file : $DISKO_FILE"
 
 # Dry-run: print the command and exit

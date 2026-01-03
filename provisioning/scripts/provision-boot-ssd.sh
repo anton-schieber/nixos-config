@@ -28,7 +28,6 @@
 # Notes:
 #   - The target disk will be irreversibly wiped.
 #   - Ensure all non-target disks are disconnected if possible.
-#   - After provisioning, run nixos-generate-config and proceed with installation.
 #
 
 set -euo pipefail
