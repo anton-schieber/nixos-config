@@ -1,7 +1,6 @@
 #
 # Description:
-#   Default programs policy. This module enables programs that are commonly used
-#   system-wide.
+#   Default programs policy.
 #
 # Usage:
 #   Import this module from a machine configuration:
@@ -13,6 +12,5 @@
 { ... }:
 
 {
-  # Enable zsh shell
-  programs.zsh.enable = true;
+  # No programs are configured by default
 }
