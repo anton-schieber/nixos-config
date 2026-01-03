@@ -17,8 +17,8 @@ Provisioning is split into two distinct responsibilities:
     - Used during initial installation or full OS reinstall
 2. Data disk provisioning
     - Wipes and initialises a single new data disk
-    - Formats it as ext4
-    - Optionally labels it based on NAS bay position
+    - Formats it as ext4 with label based on NAS bay position (nas-bayN)
+    - Mounts at /srv/disks/nas-bay{N} (or /mnt/srv/... during installation)
     - Used when expanding storage capacity
 
 Runtime configuration such as mounting disks, snapRAID, and mergerfs is handled elsewhere
@@ -40,24 +40,24 @@ You should assume that every provisioning command will irreversibly wipe the tar
 Boot SSD provisioning uses `provisioning/disko/boot.nix` and is wrapped by the
 `provision-boot-ssd.sh` script.
 
+The boot disk always creates a root (`@`) btrfs subvolume. Additional subvolumes for
+`/var/log`, `/nix`, `/persist`, and `/home` can be optionally enabled via flags.
+
 This should be run from the repository root.
 
 Steps:
 1. Identify the NVMe boot disk by-id
-    ```bash
-    ls -l /dev/disk/by-id | grep -i nvme
-    ```
-2. Provision the boot SSD (note, for a full list of options, run with the `-h` flag)
-    ```bash
-    sudo provisioning/scripts/provision-boot-ssd.sh -d /dev/disk/by-id/nvme-XXXX
-    ```
-3. Generate hardware configuration (note, after the boot disk is provisioned it is mounted
-   under `/mnt`):
-    ```bash
-    sudo nixos-generate-config --root /mnt
-    ```
-4. Copy the generated hardware configuration into the appropriate machine directory and
-   proceed with nixos-install using the flake output.
+```bash
+ls -l /dev/disk/by-id | grep -i nvme
+```
+2. Provision the boot SSD (note, for a full list of options, run with the `--help` flag)
+```bash
+# Basic provisioning (root subvolume only)
+sudo provisioning/scripts/provision-boot-ssd.sh --disk /dev/disk/by-id/nvme-XXXX
+
+# With optional subvolumes
+sudo provisioning/scripts/provision-boot-ssd.sh --disk /dev/disk/by-id/nvme-XXXX --create-log
+```
 
 ## Data disk provisioning
 
@@ -67,25 +67,22 @@ Data disk provisioning uses `provisioning/disko/disk.nix` and is wrapped by the
 This process is intentionally separate from runtime configuration.
 
 Steps:
-1. (Optional) Determine the physical NAS bay number.  Bay numbers are a human convention.
-   The operating system cannot reliably detect chassis bay positions. If you want the
-   filesystem labelled based on bay position, you must provide it explicitly.  This is
-   recommended, but to do so requires each disk to connected one after the other to ensure
-   correct mapping
+1. Determine the physical NAS bay number.  Bay numbers are a human convention.
+   The operating system cannot reliably detect chassis bay positions. You must provide the
+   bay number explicitly. To ensure correct mapping, connect and provision each disk one
+   at a time.
 2. Identify the new disk by-id
-    ```bash
-    ls -l /dev/disk/by-id | grep -E "ata-|nvme-"
-    ```
-3. Provision the disk (note, for a full list of options, run with the `-h` flag)
-    ```bash
-    sudo provisioning/scripts/provision-new-disk.sh -d /dev/disk/by-id/XXXX -b 1
-    ```
-4. Record the filesystem UUID
-    ```bash
-    lsblk -f
-    ```
-5. Add the disk to runtime configuration (`machines/<name>/storage.nix`)
-6. Update snapRAID and mergerfs configuration as required and rebuild the system.
+```bash
+ls -l /dev/disk/by-id | grep -E "ata-|nvme-"
+```
+3. Provision the disk (note, for a full list of options, run with the `--help` flag)
+```bash
+# After installation
+sudo provisioning/scripts/provision-new-disk.sh --disk /dev/disk/by-id/XXXX --bay 1
+
+# During installation (mounts at /mnt/srv/disks/nas-bay{N})
+sudo provisioning/scripts/provision-new-disk.sh --disk /dev/disk/by-id/XXXX --bay 1 --at-install
+```
 
 ## Notes
 
@@ -94,7 +91,6 @@ Provisioning does not:
 - Configure snapRAID
 - Configure mergerfs
 - Modify machine configuration
-- Persist any state in hardware-configuration.nix beyond the boot disk
 
 Those concerns are handled declaratively in the main NixOS configuration.
 
