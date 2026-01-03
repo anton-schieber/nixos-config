@@ -23,6 +23,7 @@
     # Machine-specific
     ./compatibility.nix
     ./home-manager.nix
+    ./programs.nix
     ./services.nix
     ./storage.nix
     ./system.nix
