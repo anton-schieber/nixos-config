@@ -13,13 +13,18 @@
 #   part of nixos-rebuild or any automated workflow.
 #
 # Usage:
-#   provision-boot-ssd.sh -d /dev/disk/by-id/nvme-XXXX [options]
+#   provision-boot-ssd.sh --disk /dev/disk/by-id/nvme-XXXX [options]
 #
 #   Options:
-#       -d <path> Required. Boot SSD device path (must be a stable by-id path).
-#       -y Skip interactive confirmation prompt.
-#       -n Dry-run. Print the disko command and exit without making changes.
-#       -h Show usage information.
+#       --disk <path>    Required. Boot SSD device path (must be a stable by-id path).
+#       --create-home    Create @home subvolume for /home
+#       --create-log     Create @log subvolume for /var/log
+#       --create-nix     Create @nix subvolume for /nix
+#       --create-persist Create @persist subvolume for /persist
+#       --yes            Skip interactive confirmation prompt.
+#       --dry-run        Dry-run. Print the disko command and exit without making changes.
+#       --help           Show usage information.
+#
 # Notes:
 #   - The target disk will be irreversibly wiped.
 #   - Ensure all non-target disks are disconnected if possible.
@@ -40,16 +45,21 @@ DISKO_FILE="$REPO_ROOT/provisioning/disko/boot.nix"
 usage() {
     printf '%s\n' \
         "Usage:" \
-        "  provision-boot-ssd.sh -d /dev/disk/by-id/nvme-XXXX [options]" \
+        "  provision-boot-ssd.sh --disk /dev/disk/by-id/nvme-XXXX [options]" \
         "" \
         "Options:" \
-        "  -d <path>   Required. Boot SSD device path (must be a stable by-id path)." \
-        "  -y          Skip interactive confirmation prompt." \
-        "  -n          Dry-run. Print the disko command and exit." \
-        "  -h          Show usage information." \
+        "  --disk <path>    Required. Boot SSD device path (must be a stable by-id path)." \
+        "  --create-home    Create @home subvolume for /home" \
+        "  --create-log     Create @log subvolume for /var/log" \
+        "  --create-nix     Create @nix subvolume for /nix" \
+        "  --create-persist Create @persist subvolume for /persist" \
+        "  --yes            Skip interactive confirmation prompt." \
+        "  --dry-run        Dry-run. Print the disko command and exit." \
+        "  --help           Show usage information." \
         "" \
         "Examples:" \
-        "  provisioning/scripts/provision-boot-ssd.sh -d /dev/disk/by-id/nvme-XXXX"
+        "  provisioning/scripts/provision-boot-ssd.sh --disk /dev/disk/by-id/nvme-XXXX" \
+        "  provisioning/scripts/provision-boot-ssd.sh --disk /dev/disk/by-id/nvme-XXXX --create-log"
     exit 1
 }
 
@@ -91,36 +101,118 @@ confirm() {
 DISK_PATH=""
 YES=0
 DRYRUN=0
+CREATE_HOME=false
+CREATE_LOG=false
+CREATE_NIX=false
+CREATE_PERSIST=false
 
-while getopts ":d:ynh" opt; do
-    case "$opt" in
-        d) DISK_PATH="$OPTARG" ;;
-        y) YES=1 ;;
-        n) DRYRUN=1 ;;
-        h) usage; exit 0 ;;
-        \?) usage; die "Unknown option: -$OPTARG" ;;
-        :) usage; die "Option -$OPTARG requires an argument." ;;
+# Parse options
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --disk)
+            [ -n "${2:-}" ] || { usage; die "Option --disk requires an argument."; }
+            DISK_PATH="$2"
+            shift 2
+            ;;
+        --create-home)
+            CREATE_HOME=true
+            shift
+            ;;
+        --create-log)
+            CREATE_LOG=true
+            shift
+            ;;
+        --create-nix)
+            CREATE_NIX=true
+            shift
+            ;;
+        --create-persist)
+            CREATE_PERSIST=true
+            shift
+            ;;
+        --yes)
+            YES=1
+            shift
+            ;;
+        --dry-run)
+            DRYRUN=1
+            shift
+            ;;
+        --help)
+            usage
+            exit 0
+            ;;
+        *)
+            usage
+            die "Unknown option: $1"
+            ;;
     esac
 done
-shift $((OPTIND - 1))
 
-[ -n "$DISK_PATH" ] || { usage; die "Missing required -d <path>."; }
-[ -e "$DISK_PATH" ] || die "Device does not exist: $DISK_PATH"
-[ -f "$DISKO_FILE" ] || die "Missing disko file: $DISKO_FILE"
+# Validate required arguments
+if [ -z "$DISK_PATH" ]; then
+    usage
+    die "Missing required --disk <path>."
+fi
+if [ ! -e "$DISK_PATH" ]; then
+    die "Device does not exist: $DISK_PATH"
+fi
+if [ ! -f "$DISKO_FILE" ]; then
+    die "Missing disko file: $DISKO_FILE"
+fi
 
+# Build subvolumes argument if any subvolume is enabled
+SUBVOLUMES_ARG=""
+if [ "$CREATE_LOG" = true ] || [ "$CREATE_NIX" = true ] || [ "$CREATE_PERSIST" = true ] ||
+        [ "$CREATE_HOME" = true ]; then
+    SUBVOLUMES_ARG="--arg subvolumes { "
+    if [ "$CREATE_LOG" = true ]; then
+        SUBVOLUMES_ARG+="createLog = true; "
+    fi
+    if [ "$CREATE_NIX" = true ]; then
+        SUBVOLUMES_ARG+="createNix = true; "
+    fi
+    if [ "$CREATE_PERSIST" = true ]; then
+        SUBVOLUMES_ARG+="createPersist = true; "
+    fi
+    if [ "$CREATE_HOME" = true ]; then
+        SUBVOLUMES_ARG+="createHome = true; "
+    fi
+    SUBVOLUMES_ARG+="}"
+fi
+
+# Create disko command
 CMD=(
     sudo nix
         --experimental-features "nix-command flakes"
         run github:nix-community/disko --
         --mode disko
         --arg "disk" "{ device = \"${DISK_PATH}\"; }"
-        "$DISKO_FILE"
 )
+if [ -n "$SUBVOLUMES_ARG" ]; then
+    CMD+=($SUBVOLUMES_ARG)
+fi
+CMD+=("$DISKO_FILE")
 
+# Display configuration summary
 echo "Boot SSD provisioning"
 echo "  Repo root : $REPO_ROOT"
 echo "  Disk      : $DISK_PATH"
 echo "  Disko file: $DISKO_FILE"
+echo "  Subvolumes:"
+echo "      @"
+if [ "$CREATE_HOME" = true ]; then
+    echo "      @home"
+fi
+if [ "$CREATE_LOG" = true ]; then
+    echo "      @log"
+fi
+if [ "$CREATE_NIX" = true ]; then
+    echo "      @nix"
+fi
+if [ "$CREATE_PERSIST" = true ]; then
+    echo "      @persist"
+fi
 
 # Dry-run: print the command and exit
 if [ "$DRYRUN" -eq 1 ]; then

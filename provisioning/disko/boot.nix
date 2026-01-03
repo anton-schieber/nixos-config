@@ -8,6 +8,12 @@
 #   HDDs. Disk identity is provided externally via the disk attrset:
 #     - disk.device : stable by-id path of the boot disk to be wiped (required)
 #
+#   Optional subvolumes can be enabled via the subvolumes attrset:
+#     - subvolumes.createHome    : boolean, creates @home subvolume (default: false)
+#     - subvolumes.createLog     : boolean, creates @log subvolume (default: false)
+#     - subvolumes.createNix     : boolean, creates @nix subvolume (default: false)
+#     - subvolumes.createPersist : boolean, creates @persist subvolume (default: false)
+#
 # Usage:
 #   Run disko directly against boot.nix (note: executed from repository root):
 #       sudo nix
@@ -15,11 +21,19 @@
 #           run github:nix-community/disko --
 #           --mode disko
 #           --arg disk '{ device = "/dev/disk/by-id/nvme-XXXX"; }'
+#           --arg subvolumes '{ createLog = true; }'
 #           ./modules/disko/boot.nix
 #
 
-{ disk, lib, ... }:
+{ disk, subvolumes ? {}, lib, ... }:
 
+let
+  # Default all subvolume flags to false
+  createLog = subvolumes.createLog or false;
+  createNix = subvolumes.createNix or false;
+  createPersist = subvolumes.createPersist or false;
+  createHome = subvolumes.createHome or false;
+in
 {
   assertions = [
     {
@@ -67,19 +81,24 @@
                     mountpoint = "/";
                     mountOptions = [ "compress=zstd" "ssd" "discard=async" ];
                   };
-
+                } // lib.optionalAttrs createHome {
+                  "@home" = {
+                    mountpoint = "/home";
+                    mountOptions = [ "compress=zstd" "ssd" "discard=async" ];
+                  };
+                } // lib.optionalAttrs createLog {
+                  "@log" = {
+                    mountpoint = "/var/log";
+                    mountOptions = [ "compress=zstd" "ssd" "discard=async" ];
+                  };
+                } // lib.optionalAttrs createNix {
                   "@nix" = {
                     mountpoint = "/nix";
                     mountOptions = [ "compress=zstd" "ssd" "discard=async" ];
                   };
-
+                } // lib.optionalAttrs createPersist {
                   "@persist" = {
                     mountpoint = "/persist";
-                    mountOptions = [ "compress=zstd" "ssd" "discard=async" ];
-                  };
-
-                  "@var-log" = {
-                    mountpoint = "/var/log";
                     mountOptions = [ "compress=zstd" "ssd" "discard=async" ];
                   };
                 };
