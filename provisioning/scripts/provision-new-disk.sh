@@ -179,26 +179,10 @@ if [ "$YES" -ne 1 ]; then
     confirm "About to provision a new data disk." || { echo "Aborted."; exit 1; }
 fi
 
-# Wipe existing filesystem signatures and partition table
-echo
-echo "Wiping existing filesystem signatures and partition table..."
-sudo wipefs --all --force "${DISK_PATH}" || die "Failed to wipe disk signatures"
-
-# Inform kernel of partition table changes
-echo "Informing kernel of partition table changes..."
-sudo partprobe "${DISK_PATH}" 2>/dev/null || true
-sleep 2
-
 # Provision the new data disk
 echo
 echo "Running disko..."
 "${CMD[@]}"
-
-# Inform kernel of new partition table
-echo
-echo "Refreshing partition table..."
-sudo partprobe "${DISK_PATH}" 2>/dev/null || true
-sleep 1
 
 # Complete!
 echo

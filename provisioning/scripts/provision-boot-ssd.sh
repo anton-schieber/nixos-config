@@ -229,26 +229,10 @@ if [ "$YES" -ne 1 ]; then
     confirm "About to provision the boot SSD." || { echo "Aborted."; exit 1; }
 fi
 
-# Wipe existing filesystem signatures and partition table
-echo
-echo "Wiping existing filesystem signatures and partition table..."
-sudo wipefs --all --force "${DISK_PATH}" || { echo "ERROR: Failed to wipe disk signatures" 1>&2; exit 1; }
-
-# Inform kernel of partition table changes
-echo "Informing kernel of partition table changes..."
-sudo partprobe "${DISK_PATH}" 2>/dev/null || true
-sleep 2
-
 # Provision the boot SSD
 echo
 echo "Running disko..."
 "${CMD[@]}"
-
-# Inform kernel of new partition table
-echo
-echo "Refreshing partition table..."
-sudo partprobe "${DISK_PATH}" 2>/dev/null || true
-sleep 1
 
 # Complete!
 echo
