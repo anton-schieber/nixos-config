@@ -67,15 +67,24 @@ Data disk provisioning uses `provisioning/disko/disk.nix` and is wrapped by the
 This process is intentionally separate from runtime configuration.
 
 Steps:
-1. Determine the physical NAS bay number.  Bay numbers are a human convention.
-   The operating system cannot reliably detect chassis bay positions. You must provide the
-   bay number explicitly. To ensure correct mapping, connect and provision each disk one
-   at a time.
-2. Identify the new disk by-id
+1. Identify the physical bay numbers and disk serial numbers.
+   Open the NAS bay cover and read the serial numbers from the disk labels. Note which
+   bay each serial number is in. Bay numbering is a manual process - the operating system
+   cannot detect physical bay positions.
+2. List all disks with their serial numbers
 ```bash
-ls -l /dev/disk/by-id | grep -E "ata-|nvme-"
+lsblk -o NAME,PATH,SERIAL,MODEL,SIZE,TYPE
 ```
-3. Provision the disk (note, for a full list of options, run with the `--help` flag)
+3. Match the serial numbers from step 1 with the output to determine each disk's device
+   path (e.g., `/dev/sda`, `/dev/sdb`).
+4. For each disk, find its stable by-id path
+```bash
+ls -l /dev/disk/by-id/ | grep sda
+```
+   Look for the `ata-` or `nvme-` identifier (not the `-partN` variants). This gives you
+   the stable `/dev/disk/by-id/ata-XXXXX` path to use for provisioning.
+5. Provision each disk with its corresponding bay number (note, for a full list of
+   options, run with the `--help` flag)
 ```bash
 # After installation
 sudo provisioning/scripts/provision-new-disk.sh --disk /dev/disk/by-id/XXXX --bay 1
