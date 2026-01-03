@@ -187,16 +187,14 @@ CMD=(
     sudo nix
         --experimental-features "nix-command flakes"
         run github:nix-community/disko
-        --arg "disk" "{ device = \"${DISK_PATH}\"; }"
+        --
+        --mode disko
+        --arg disk "{ device = \"${DISK_PATH}\"; }"
 )
 if [ "${#SUBVOLUMES_ARG[@]}" -gt 0 ]; then
     CMD+=("${SUBVOLUMES_ARG[@]}")
 fi
-CMD+=(
-    --
-    --mode disko
-    "$DISKO_FILE"
-)
+CMD+=("$DISKO_FILE")
 
 # Display configuration summary
 echo "Boot SSD provisioning"

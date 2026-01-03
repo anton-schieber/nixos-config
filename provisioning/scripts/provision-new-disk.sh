@@ -174,9 +174,9 @@ CMD=(
     sudo nix
         --experimental-features "nix-command flakes"
         run github:nix-community/disko
-        --arg "disk" "$DISK_ARG"
         --
         --mode disko
+        --arg disk "$DISK_ARG"
         "$DISKO_FILE"
 )
 
