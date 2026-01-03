@@ -43,7 +43,7 @@
   outputs = { self, nixpkgs, ... }@inputs: {
     nixosConfigurations = {
       # Template NAS machine
-      alexandria = nixpkgs.lib.nixosSystem {
+      template = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = {
           inherit inputs;
