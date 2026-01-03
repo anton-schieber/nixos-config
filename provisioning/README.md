@@ -18,7 +18,7 @@ Provisioning is split into two distinct responsibilities:
 2. Data disk provisioning
     - Wipes and initialises a single new data disk
     - Formats it as ext4 with label based on data disk number (dataN)
-    - Used during initial install or when expanding storage capacity
+    - Used after initial install or when expanding storage capacity
 
 Runtime configuration such as mounting disks, snapRAID, and mergerfs is handled elsewhere
 in the repository and is not part of provisioning.
@@ -62,6 +62,10 @@ sudo provisioning/scripts/provision-boot-ssd.sh --disk /dev/disk/by-id/nvme-XXXX
 
 Data disk provisioning uses `provisioning/disko/data.nix` and is wrapped by the
 `provision-data-disk.sh` script. They are provisioned one at a time.
+
+**IMPORTANT**: Data disk provisioning must be done **after** initial installation and
+first boot, from the running NixOS system. Do not provision data disks during installation
+as this causes mount conflicts with the boot disk provisioning.
 
 This process is intentionally separate from runtime configuration.
 
