@@ -13,6 +13,7 @@
 
 {
   imports = [
-    ../../modules/nixos/programs
+    ../../modules/nixos/programs/disk.nix
+    ../../modules/nixos/programs/shell.nix
   ];
 }
