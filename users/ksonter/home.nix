@@ -14,7 +14,11 @@
   # Git configuration
   programs.git = {
     enable = true;
-    userName = "Kieran Sonter";
-    userEmail = "ksonter95@gmail.com";
+    settings = {
+      user = {
+        name = "Kieran Sonter";
+        email = "ksonter95@gmail.com";
+      };
+    };
   };
 }
