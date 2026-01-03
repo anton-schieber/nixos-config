@@ -104,6 +104,8 @@ sudo provisioning/scripts/mount-new-disk.sh --disk /dev/disk/by-id/XXXX --bay 1
 ```
 3. Repeat for each data disk that needs to be mounted
 
+NOTE: this is only necessary during installation
+
 ## Notes
 
 Provisioning does not:

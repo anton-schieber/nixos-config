@@ -141,6 +141,9 @@ case "$BAY" in
     *) usage; die "Invalid bay '$BAY'. Must be an integer 1-8." ;;
 esac
 
+# Define mount path
+MOUNT_PATH="/mnt/srv/disks/nas-bay${BAY}"
+
 # Create disko mount command
 CMD=(
     sudo nix
@@ -157,7 +160,7 @@ echo "Mounting data disk"
 echo "  Repo root  : $REPO_ROOT"
 echo "  Disk       : $DISK_PATH"
 echo "  Bay        : $BAY (label nas-bay$BAY)"
-echo "  Mount path : /mnt/srv/disks/nas-bay$BAY"
+echo "  Mount path : $MOUNT_PATH"
 echo "  Disko file : $DISKO_FILE"
 
 # Dry-run: print the command and exit
@@ -173,6 +176,11 @@ fi
 if [ "$YES" -ne 1 ]; then
     confirm "About to mount data disk." || { echo "Aborted."; exit 1; }
 fi
+
+# Create mount directory structure
+echo
+echo "Creating mount directory..."
+sudo mkdir -p "$MOUNT_PATH"
 
 # Mount the data disk
 echo
