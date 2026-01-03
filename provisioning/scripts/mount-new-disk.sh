@@ -2,29 +2,25 @@
 
 #
 # Description:
-#   This script provisions a single new data disk for later use in the snapRAID + mergerfs
-#   storage stack using the provisioning/disko/disk.nix disko definition.
+#   This script mounts a previously provisioned data disk using disko in mount mode. It
+#   does not repartition or format the disk - it only mounts existing filesystems.
 #
-#   The script is intentionally destructive and is designed to be run manually, exactly
-#   once per new disk. It performs argument validation, bay labeling, and explicit
-#   confirmation before invoking disko.
-#
-#   This script does not configure runtime mounts, snapRAID, or mergerfs. Those steps must
-#   be performed separately in the machine storage configuration after provisioning.
+#   Use this script when you need to remount data disks after boot SSD provisioning
+#   during installation, or when mounting disks that have already been provisioned.
 #
 # Usage:
-#   provision-new-disk.sh --disk /dev/disk/by-id/XXXX --bay <1-8> [options]
+#   mount-new-disk.sh --disk /dev/disk/by-id/XXXX --bay <1-8> [options]
 #
 #   Options:
-#       --disk <path>  Required. New disk device path (must be a stable by-id path).
-#       --bay <1-8>    Required. NAS bay number used to label the filesystem (nas-bayN).
+#       --disk <path>  Required. Disk device path (must be a stable by-id path).
+#       --bay <1-8>    Required. NAS bay number (must match provisioned label).
 #       --yes          Skip interactive confirmation prompt.
-#       --dry-run      Dry-run. Print the disko command and exit without making changes.
+#       --dry-run      Dry-run. Print the disko command and exit without mounting.
 #       --help         Show usage information.
 #
 # Notes:
-#   - The target disk will be irreversibly wiped.
-#   - Ensure all non-target disks are disconnected if possible.
+#   - The disk must already be provisioned with the correct bay label.
+#   - This script does not modify the disk, it only mounts it.
 #
 
 set -euo pipefail
@@ -35,23 +31,23 @@ DISKO_FILE="$REPO_ROOT/provisioning/disko/disk.nix"
 
 #
 # Description:
-#   Print usage information for the script, including required arguments, optional flags,
-#   and example invocations.
+#   Print usage information for the script, including required arguments and example
+#   invocations.
 #
 usage() {
     printf '%s\n' \
         "Usage:" \
-        "  provision-new-disk.sh --disk /dev/disk/by-id/XXXX --bay <1-8> [options]" \
+        "  mount-new-disk.sh --disk /dev/disk/by-id/XXXX --bay <1-8> [options]" \
         "" \
         "Options:" \
-        "  --disk <path>  Required. New disk device path (must be a stable by-id path)." \
-        "  --bay <1-8>    Required. NAS bay number (filesystem label: nas-bayN)." \
+        "  --disk <path>  Required. Disk device path (must be a stable by-id path)." \
+        "  --bay <1-8>    Required. NAS bay number (must match provisioned label)." \
         "  --yes          Skip interactive confirmation prompt." \
         "  --dry-run      Dry-run. Print the disko command and exit." \
         "  --help         Show usage information." \
         "" \
         "Examples:" \
-        "  provisioning/scripts/provision-new-disk.sh --disk /dev/disk/by-id/XXXX --bay 3"
+        "  provisioning/scripts/mount-new-disk.sh --disk /dev/disk/by-id/XXXX --bay 1"
     exit 1
 }
 
@@ -69,7 +65,7 @@ die() {
 
 #
 # Description:
-#   Prompt the user for explicit confirmation before performing a destructive operation.
+#   Prompt the user for explicit confirmation before mounting.
 #
 # Arguments:
 #   $1 Short description of the action being confirmed.
@@ -83,8 +79,6 @@ confirm() {
 
     echo
     echo "$prompt"
-    echo "THIS WILL IRREVERSIBLY WIPE THE TARGET DISK."
-    echo
     read -r -p "Type 'YES' to continue: " ans
 
     [ "$ans" = "YES" ]
@@ -147,22 +141,23 @@ case "$BAY" in
     *) usage; die "Invalid bay '$BAY'. Must be an integer 1-8." ;;
 esac
 
-# Create disko command
+# Create disko mount command
 CMD=(
     sudo nix
         --experimental-features "nix-command flakes"
         run github:nix-community/disko
         --
-        --mode disko
+        --mode mount
         --arg disk "{ device = \"${DISK_PATH}\"; bay = ${BAY}; }"
         "$DISKO_FILE"
 )
 
 # Display configuration summary
-echo "New data disk provisioning"
+echo "Mounting data disk"
 echo "  Repo root  : $REPO_ROOT"
 echo "  Disk       : $DISK_PATH"
 echo "  Bay        : $BAY (label nas-bay$BAY)"
+echo "  Mount path : /mnt/srv/disks/nas-bay$BAY"
 echo "  Disko file : $DISKO_FILE"
 
 # Dry-run: print the command and exit
@@ -176,14 +171,14 @@ fi
 
 # Prompt for confirmation
 if [ "$YES" -ne 1 ]; then
-    confirm "About to provision a new data disk." || { echo "Aborted."; exit 1; }
+    confirm "About to mount data disk." || { echo "Aborted."; exit 1; }
 fi
 
-# Provision the new data disk
+# Mount the data disk
 echo
-echo "Running disko..."
+echo "Running disko in mount mode..."
 "${CMD[@]}"
 
 # Complete!
 echo
-echo "Data disk provisioning complete."
+echo "Data disk mount complete."
