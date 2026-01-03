@@ -18,8 +18,7 @@ Provisioning is split into two distinct responsibilities:
 2. Data disk provisioning
     - Wipes and initialises a single new data disk
     - Formats it as ext4 with label based on NAS bay position (nas-bayN)
-    - Mounts at /srv/disks/nas-bay{N} (or /mnt/srv/... during installation)
-    - Used when expanding storage capacity
+    - Used during initial install or when expanding storage capacity
 
 Runtime configuration such as mounting disks, snapRAID, and mergerfs is handled elsewhere
 in the repository and is not part of provisioning.
@@ -86,11 +85,7 @@ ls -l /dev/disk/by-id/ | grep sda
 5. Provision each disk with its corresponding bay number (note, for a full list of
    options, run with the `--help` flag)
 ```bash
-# After installation
 sudo provisioning/scripts/provision-new-disk.sh --disk /dev/disk/by-id/XXXX --bay 1
-
-# During installation (mounts at /mnt/srv/disks/nas-bay{N})
-sudo provisioning/scripts/provision-new-disk.sh --disk /dev/disk/by-id/XXXX --bay 1 --at-install
 ```
 
 ## Notes
