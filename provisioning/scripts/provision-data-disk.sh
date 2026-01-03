@@ -179,6 +179,13 @@ if [ "$YES" -ne 1 ]; then
     confirm "About to provision a new data disk." || { echo "Aborted."; exit 1; }
 fi
 
+# Wipe the disk completely: partition tables and filesystem signatures
+echo
+echo "Wiping partition table and filesystem signatures..."
+sudo sgdisk --zap-all "$DISK_PATH" || die "Failed to zap partition table on $DISK_PATH"
+sudo wipefs --all --force "$DISK_PATH" || \
+    die "Failed to wipe filesystem signatures on $DISK_PATH"
+
 # Provision the new data disk
 echo
 echo "Running disko..."
