@@ -76,6 +76,9 @@ in
               content = {
                 type = "btrfs";
                 extraArgs = [ "-f" "-L" "root" ];
+                preFormatScript = ''
+                  wipefs --all --force "$device" || true
+                '';
                 subvolumes = {
                   "@" = {
                     mountpoint = "/";

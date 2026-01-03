@@ -56,6 +56,9 @@
                 mountpoint = "/srv/disks/data${toString disk.bay}";
                 mountOptions = [ "defaults" "noatime" "nofail" ];
                 extraArgs = [ "-L" "data${toString disk.bay}" ];
+                preFormatScript = ''
+                  wipefs --all --force "$device" || true
+                '';
               };
             };
           };
