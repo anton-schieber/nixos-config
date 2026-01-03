@@ -52,6 +52,16 @@
           ./machines/template/configuration.nix
         ];
       };
+      # Pergamon NAS machine
+      pergamon = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = {
+          inherit inputs;
+        };
+        modules = [
+          ./machines/pergamon/configuration.nix
+        ];
+      };
     };
   };
 }
