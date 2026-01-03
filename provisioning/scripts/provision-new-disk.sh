@@ -17,7 +17,7 @@
 #
 #   Options:
 #       --disk <path>  Required. New disk device path (must be a stable by-id path).
-#       --bay <1-8>    Required. NAS bay number used to label the filesystem (nas-bayN).
+#       --bay <1-8>    Required. Bay number used to label the filesystem (bayN).
 #       --yes          Skip interactive confirmation prompt.
 #       --dry-run      Dry-run. Print the disko command and exit without making changes.
 #       --help         Show usage information.
@@ -45,7 +45,7 @@ usage() {
         "" \
         "Options:" \
         "  --disk <path>  Required. New disk device path (must be a stable by-id path)." \
-        "  --bay <1-8>    Required. NAS bay number (filesystem label: nas-bayN)." \
+        "  --bay <1-8>    Required. Bay number (filesystem label: bayN)." \
         "  --yes          Skip interactive confirmation prompt." \
         "  --dry-run      Dry-run. Print the disko command and exit." \
         "  --help         Show usage information." \
@@ -162,7 +162,7 @@ CMD=(
 echo "New data disk provisioning"
 echo "  Repo root  : $REPO_ROOT"
 echo "  Disk       : $DISK_PATH"
-echo "  Bay        : $BAY (label nas-bay$BAY)"
+echo "  Bay        : $BAY (label bay$BAY)"
 echo "  Disko file : $DISKO_FILE"
 
 # Dry-run: print the command and exit

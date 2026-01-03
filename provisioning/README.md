@@ -17,7 +17,7 @@ Provisioning is split into two distinct responsibilities:
     - Used during initial installation or full OS reinstall
 2. Data disk provisioning
     - Wipes and initialises a single new data disk
-    - Formats it as ext4 with label based on NAS bay position (nas-bayN)
+    - Formats it as ext4 with label based on bay position (bayN)
     - Used during initial install or when expanding storage capacity
 
 Runtime configuration such as mounting disks, snapRAID, and mergerfs is handled elsewhere

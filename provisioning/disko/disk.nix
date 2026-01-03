@@ -5,9 +5,9 @@
 #   destructive and must never be imported into a running host configuration.
 #
 #   The module wipes the target disk, creates a fresh GPT partition table, formats the
-#   disk with a single ext4 filesystem, and mounts it at /srv/disks/nas-bay{N}.
+#   disk with a single ext4 filesystem, and mounts it at /srv/disks/bay{N}.
 #
-#   The ext4 filesystem is labelled based on the NAS bay position (slots 1-8).
+#   The ext4 filesystem is labelled based on the bay position (slots 1-8).
 #
 #   Disk identity is provided externally via the disk attrset:
 #     - disk.device : stable by-id path of the new disk to be wiped (required)
@@ -42,7 +42,7 @@
 
   disko.devices = {
     disk = {
-      "nas-bay${toString disk.bay}" = {
+      "bay${toString disk.bay}" = {
         device = disk.device;
         type = "disk";
         content = {
@@ -53,9 +53,9 @@
               content = {
                 type = "filesystem";
                 format = "ext4";
-                mountpoint = "/srv/disks/nas-bay${toString disk.bay}";
+                mountpoint = "/srv/disks/bay${toString disk.bay}";
                 mountOptions = [ "defaults" "noatime" "nofail" ];
-                extraArgs = [ "-L" "nas-bay${toString disk.bay}" ];
+                extraArgs = [ "-L" "bay${toString disk.bay}" ];
               };
             };
           };
