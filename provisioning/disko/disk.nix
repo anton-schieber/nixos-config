@@ -42,7 +42,7 @@
 
   disko.devices = {
     disk = {
-      target = {
+      "nas-bay${toString disk.bay}" = {
         device = disk.device;
         type = "disk";
         content = {
