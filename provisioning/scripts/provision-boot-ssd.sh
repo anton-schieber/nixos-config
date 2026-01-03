@@ -162,23 +162,24 @@ if [ ! -f "$DISKO_FILE" ]; then
 fi
 
 # Build subvolumes argument if any subvolume is enabled
-SUBVOLUMES_ARG=""
+SUBVOLUMES_ARG=()
 if [ "$CREATE_LOG" = true ] || [ "$CREATE_NIX" = true ] || [ "$CREATE_PERSIST" = true ] ||
         [ "$CREATE_HOME" = true ]; then
-    SUBVOLUMES_ARG="--arg subvolumes { "
+    SUBVOLUMES_STR="{ "
     if [ "$CREATE_LOG" = true ]; then
-        SUBVOLUMES_ARG+="createLog = true; "
+        SUBVOLUMES_STR+="createLog = true; "
     fi
     if [ "$CREATE_NIX" = true ]; then
-        SUBVOLUMES_ARG+="createNix = true; "
+        SUBVOLUMES_STR+="createNix = true; "
     fi
     if [ "$CREATE_PERSIST" = true ]; then
-        SUBVOLUMES_ARG+="createPersist = true; "
+        SUBVOLUMES_STR+="createPersist = true; "
     fi
     if [ "$CREATE_HOME" = true ]; then
-        SUBVOLUMES_ARG+="createHome = true; "
+        SUBVOLUMES_STR+="createHome = true; "
     fi
-    SUBVOLUMES_ARG+="}"
+    SUBVOLUMES_STR+="}"
+    SUBVOLUMES_ARG=(--arg subvolumes "$SUBVOLUMES_STR")
 fi
 
 # Create disko command
@@ -188,8 +189,8 @@ CMD=(
         run github:nix-community/disko
         --arg "disk" "{ device = \"${DISK_PATH}\"; }"
 )
-if [ -n "$SUBVOLUMES_ARG" ]; then
-    CMD+=($SUBVOLUMES_ARG)
+if [ "${#SUBVOLUMES_ARG[@]}" -gt 0 ]; then
+    CMD+=("${SUBVOLUMES_ARG[@]}")
 fi
 CMD+=(
     --
