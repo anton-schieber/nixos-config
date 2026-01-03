@@ -17,7 +17,7 @@ Provisioning is split into two distinct responsibilities:
     - Used during initial installation or full OS reinstall
 2. Data disk provisioning
     - Wipes and initialises a single new data disk
-    - Formats it as ext4 with label based on bay position (bayN)
+    - Formats it as ext4 with label based on data disk number (dataN)
     - Used during initial install or when expanding storage capacity
 
 Runtime configuration such as mounting disks, snapRAID, and mergerfs is handled elsewhere
@@ -60,14 +60,14 @@ sudo provisioning/scripts/provision-boot-ssd.sh --disk /dev/disk/by-id/nvme-XXXX
 
 ## Data disk provisioning
 
-Data disk provisioning uses `provisioning/disko/disk.nix` and is wrapped by the
-`provision-new-disk.sh` script.  They are provisioned one at a time.
+Data disk provisioning uses `provisioning/disko/data.nix` and is wrapped by the
+`provision-data-disk.sh` script. They are provisioned one at a time.
 
 This process is intentionally separate from runtime configuration.
 
 Steps:
 1. Identify the physical bay numbers and disk serial numbers.
-   Open the NAS bay cover and read the serial numbers from the disk labels. Note which
+   Open the NAS enclosure and read the serial numbers from the disk labels. Note which
    bay each serial number is in. Bay numbering is a manual process - the operating system
    cannot detect physical bay positions.
 2. List all disks with their serial numbers
@@ -85,7 +85,7 @@ ls -l /dev/disk/by-id/ | grep sda
 5. Provision each disk with its corresponding bay number (note, for a full list of
    options, run with the `--help` flag)
 ```bash
-sudo provisioning/scripts/provision-new-disk.sh --disk /dev/disk/by-id/XXXX --bay 1
+sudo provisioning/scripts/provision-data-disk.sh --disk /dev/disk/by-id/XXXX --bay 1
 ```
 
 ## Notes

@@ -3,7 +3,7 @@
 #
 # Description:
 #   This script provisions a single new data disk for later use in the snapRAID + mergerfs
-#   storage stack using the provisioning/disko/disk.nix disko definition.
+#   storage stack using the provisioning/disko/data.nix disko definition.
 #
 #   The script is intentionally destructive and is designed to be run manually, exactly
 #   once per new disk. It performs argument validation, bay labeling, and explicit
@@ -13,11 +13,11 @@
 #   be performed separately in the machine storage configuration after provisioning.
 #
 # Usage:
-#   provision-new-disk.sh --disk /dev/disk/by-id/XXXX --bay <1-8> [options]
+#   provision-data-disk.sh --disk /dev/disk/by-id/XXXX --bay <1-8> [options]
 #
 #   Options:
 #       --disk <path>  Required. New disk device path (must be a stable by-id path).
-#       --bay <1-8>    Required. Bay number used to label the filesystem (bayN).
+#       --bay <1-8>    Required. Bay number used to label the filesystem (dataN).
 #       --yes          Skip interactive confirmation prompt.
 #       --dry-run      Dry-run. Print the disko command and exit without making changes.
 #       --help         Show usage information.
@@ -31,7 +31,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-DISKO_FILE="$REPO_ROOT/provisioning/disko/disk.nix"
+DISKO_FILE="$REPO_ROOT/provisioning/disko/data.nix"
 
 #
 # Description:
@@ -41,17 +41,17 @@ DISKO_FILE="$REPO_ROOT/provisioning/disko/disk.nix"
 usage() {
     printf '%s\n' \
         "Usage:" \
-        "  provision-new-disk.sh --disk /dev/disk/by-id/XXXX --bay <1-8> [options]" \
+        "  provision-data-disk.sh --disk /dev/disk/by-id/XXXX --bay <1-8> [options]" \
         "" \
         "Options:" \
         "  --disk <path>  Required. New disk device path (must be a stable by-id path)." \
-        "  --bay <1-8>    Required. Bay number (filesystem label: bayN)." \
+        "  --bay <1-8>    Required. Bay number (filesystem label: dataN)." \
         "  --yes          Skip interactive confirmation prompt." \
         "  --dry-run      Dry-run. Print the disko command and exit." \
         "  --help         Show usage information." \
         "" \
         "Examples:" \
-        "  provisioning/scripts/provision-new-disk.sh --disk /dev/disk/by-id/XXXX --bay 3"
+        "  provisioning/scripts/provision-data-disk.sh --disk /dev/disk/by-id/XXXX --bay 3"
     exit 1
 }
 
@@ -162,7 +162,7 @@ CMD=(
 echo "New data disk provisioning"
 echo "  Repo root  : $REPO_ROOT"
 echo "  Disk       : $DISK_PATH"
-echo "  Bay        : $BAY (label bay$BAY)"
+echo "  Bay        : $BAY (label data$BAY)"
 echo "  Disko file : $DISKO_FILE"
 
 # Dry-run: print the command and exit
