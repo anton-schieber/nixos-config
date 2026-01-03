@@ -20,7 +20,7 @@
 #
 # Notes:
 #   - Requires at least one parity bay and one data bay
-#   - Disks must be mounted at /srv/disks/bay{N} before snapRAID operations
+#   - Disks must be mounted at /srv/disks/data{N} before snapRAID operations
 #   - Content files are automatically stored on root filesystem and all data disks
 #   - Each parity disk should be at least as large as the largest data disk
 #   - Sync runs daily at 1am
@@ -32,10 +32,10 @@
 let
   # Generate paths from bay numbers
   parityPaths =
-    map (bay: "/srv/disks/bay${toString bay}/snapraid.parity")
+    map (bay: "/srv/disks/data${toString bay}/snapraid.parity")
     config.nixos.storage.snapraid.parityBays;
   dataPaths =
-    map (bay: "/srv/disks/bay${toString bay}")
+    map (bay: "/srv/disks/data${toString bay}")
     config.nixos.storage.snapraid.dataBays;
   contentPaths =
     [ "/var/snapraid/snapraid.content" ]
@@ -98,7 +98,7 @@ in
       type = lib.types.listOf lib.types.int;
       description = ''
         List of physical bay numbers containing parity disks.
-        Each disk must be mounted at /srv/disks/bay{N}.
+        Each disk must be mounted at /srv/disks/data{N}.
         Each parity disk must be at least as large as the largest data disk.
         At least one parity bay is required for snapRAID operation. Supports up to 6
         parity disks.
@@ -109,7 +109,7 @@ in
       type = lib.types.listOf lib.types.int;
       description = ''
         List of physical bay numbers containing data disks.
-        Each disk must be mounted at /srv/disks/bay{N}.
+        Each disk must be mounted at /srv/disks/data{N}.
         At least one data bay is required for snapRAID operation.
       '';
       example = [ 3 4 5 ];
