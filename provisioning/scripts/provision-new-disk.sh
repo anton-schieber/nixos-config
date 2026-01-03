@@ -6,25 +6,28 @@
 #   storage stack using the provisioning/disko/disk.nix disko definition.
 #
 #   The script is intentionally destructive and is designed to be run manually, exactly
-#   once per new disk. It performs argument validation, optional bay labeling, and
-#   explicit confirmation before invoking disko.
+#   once per new disk. It performs argument validation, bay labeling, and explicit
+#   confirmation before invoking disko.
 #
 #   This script does not configure runtime mounts, snapRAID, or mergerfs. Those steps must
 #   be performed separately in the machine storage configuration after provisioning.
 #
 # Usage:
-#   provision-new-disk.sh -d /dev/disk/by-id/XXXX [options]
+#   provision-new-disk.sh --disk /dev/disk/by-id/XXXX --bay <1-8> [options]
 #
 #   Options:
-#       -d <path> Required. New disk device path (must be a stable by-id path).
-#       -b <1-8> Optional. NAS bay number used to label the filesystem (nas-bayN).
-#       -y Skip interactive confirmation prompt.
-#       -n Dry-run. Print the disko command and exit without making changes.
-#       -h Show usage information.
+#       --disk <path>  Required. New disk device path (must be a stable by-id path).
+#       --bay <1-8>    Required. NAS bay number used to label the filesystem (nas-bayN).
+#       --at-install   Optional. Provision during installation (mount at /mnt/srv/...).
+#       --yes          Skip interactive confirmation prompt.
+#       --dry-run      Dry-run. Print the disko command and exit without making changes.
+#       --help         Show usage information.
 #
 # Notes:
 #   - The target disk will be irreversibly wiped.
-#   - The filesystem is mounted temporarily at /mnt/provision during provisioning.
+#   - The filesystem is mounted at /srv/disks/nas-bay{N} (or /mnt/srv/... if
+#     --at-install).
+#   - Mount options: defaults, noatime, nofail
 #   - Record the resulting filesystem UUID and add it to runtime storage configuration.
 #
 
@@ -42,18 +45,19 @@ DISKO_FILE="$REPO_ROOT/provisioning/disko/disk.nix"
 usage() {
     printf '%s\n' \
         "Usage:" \
-        "  provision-new-disk.sh -d /dev/disk/by-id/XXXX [options]" \
+        "  provision-new-disk.sh --disk /dev/disk/by-id/XXXX --bay <1-8> [options]" \
         "" \
         "Options:" \
-        "  -d <path>   Required. New disk device path (must be a stable by-id path)." \
-        "  -b <1-8>    Optional. NAS bay number used to label the filesystem (nas-bayN)." \
-        "  -y          Skip interactive confirmation prompt." \
-        "  -n          Dry-run. Print the disko command and exit." \
-        "  -h          Show usage information." \
+        "  --disk <path>  Required. New disk device path (must be a stable by-id path)." \
+        "  --bay <1-8>    Required. NAS bay number (filesystem label: nas-bayN)." \
+        "  --at-install   Optional. Provision during install (mount at /mnt/srv/...)." \
+        "  --yes          Skip interactive confirmation prompt." \
+        "  --dry-run      Dry-run. Print the disko command and exit." \
+        "  --help         Show usage information." \
         "" \
         "Examples:" \
-        "  provisioning/scripts/provision-new-disk.sh -d /dev/disk/by-id/XXXX" \
-        "  provisioning/scripts/provision-new-disk.sh -d /dev/disk/by-id/XXXX -b 3"
+        "  provisioning/scripts/provision-new-disk.sh --disk /dev/disk/by-id/XXXX --bay 3" \
+        "  provisioning/scripts/provision-new-disk.sh --disk /dev/disk/by-id/XXXX --bay 3 --at-install"
     exit 1
 }
 
@@ -94,39 +98,78 @@ confirm() {
 
 DISK_PATH=""
 BAY=""
+AT_INSTALL=0
 YES=0
 DRYRUN=0
 
-while getopts ":d:b:ynh" opt; do
-    case "$opt" in
-        d) DISK_PATH="$OPTARG" ;;
-        b) BAY="$OPTARG" ;;
-        y) YES=1 ;;
-        n) DRYRUN=1 ;;
-        h) usage; exit 0 ;;
-        \?) usage; die "Unknown option: -$OPTARG" ;;
-        :) usage; die "Option -$OPTARG requires an argument." ;;
+# Parse options
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --disk)
+            [ -n "${2:-}" ] || { usage; die "Option --disk requires an argument."; }
+            DISK_PATH="$2"
+            shift 2
+            ;;
+        --bay)
+            [ -n "${2:-}" ] || { usage; die "Option --bay requires an argument."; }
+            BAY="$2"
+            shift 2
+            ;;
+        --at-install)
+            AT_INSTALL=1
+            shift
+            ;;
+        --yes)
+            YES=1
+            shift
+            ;;
+        --dry-run)
+            DRYRUN=1
+            shift
+            ;;
+        --help)
+            usage
+            exit 0
+            ;;
+        *)
+            usage
+            die "Unknown option: $1"
+            ;;
     esac
 done
-shift $((OPTIND - 1))
 
-[ -n "$DISK_PATH" ] || { usage; die "Missing required -d <path>."; }
-[ -e "$DISK_PATH" ] || die "Device does not exist: $DISK_PATH"
-[ -f "$DISKO_FILE" ] || die "Missing disko file: $DISKO_FILE"
-
-if [ -n "$BAY" ]; then
-    case "$BAY" in
-        [1-8]) ;;
-        *) usage; die "Invalid bay '$BAY'. Must be an integer 1-8." ;;
-    esac
+# Validate required arguments
+if [ -z "$DISK_PATH" ]; then
+    usage
+    die "Missing required --disk <path>."
+fi
+if [ -z "$BAY" ]; then
+    usage
+    die "Missing required --bay <1-8>."
+fi
+if [ ! -e "$DISK_PATH" ]; then
+    die "Device does not exist: $DISK_PATH"
+fi
+if [ ! -f "$DISKO_FILE" ]; then
+    die "Missing disko file: $DISKO_FILE"
 fi
 
-if [ -n "$BAY" ]; then
-    DISK_ARG="{ device = \"${DISK_PATH}\"; bay = ${BAY}; }"
+# Validate bay number
+case "$BAY" in
+    [1-8]) ;;
+    *) usage; die "Invalid bay '$BAY'. Must be an integer 1-8." ;;
+esac
+
+# Build disk argument
+if [ "$AT_INSTALL" -eq 1 ]; then
+    DISK_ARG="{ device = \"${DISK_PATH}\"; bay = ${BAY}; atInstall = true; }"
+    MOUNT_PATH="/mnt/srv/disks/nas-bay${BAY}"
 else
-    DISK_ARG="{ device = \"${DISK_PATH}\"; }"
+    DISK_ARG="{ device = \"${DISK_PATH}\"; bay = ${BAY}; }"
+    MOUNT_PATH="/srv/disks/nas-bay${BAY}"
 fi
 
+# Create disko command
 CMD=(
     sudo nix
         --experimental-features "nix-command flakes"
@@ -136,15 +179,13 @@ CMD=(
         "$DISKO_FILE"
 )
 
+# Display configuration summary
 echo "New data disk provisioning"
-echo "  Repo root : $REPO_ROOT"
-echo "  Disk      : $DISK_PATH"
-if [ -n "$BAY" ]; then
-    echo "  Bay       : $BAY (label nas-bay$BAY)"
-else
-    echo "  Bay       : (none, no label)"
-fi
-echo "  Disko file: $DISKO_FILE"
+echo "  Repo root  : $REPO_ROOT"
+echo "  Disk       : $DISK_PATH"
+echo "  Bay        : $BAY (label nas-bay$BAY)"
+echo "  Mount path : $MOUNT_PATH"
+echo "  Disko file : $DISKO_FILE"
 
 # Dry-run: print the command and exit
 if [ "$DRYRUN" -eq 1 ]; then
@@ -168,7 +209,3 @@ echo "Running disko..."
 # Complete!
 echo
 echo "Data disk provisioning complete."
-echo "Next steps:"
-echo "  - lsblk -f"
-echo "  - Record the new filesystem UUID"
-echo "  - Add it to your runtime mounts module"
