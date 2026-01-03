@@ -88,24 +88,6 @@ ls -l /dev/disk/by-id/ | grep sda
 sudo provisioning/scripts/provision-new-disk.sh --disk /dev/disk/by-id/XXXX --bay 1
 ```
 
-### Mounting provisioned data disks
-
-If it is necessary to mount data disks that have already been provisioned (for example,
-after boot SSD provisioning during installation), use the `mount-new-disk.sh` script.
-
-This script uses disko in mount mode, which does not repartition or format - it only
-mounts existing filesystems.
-
-Steps:
-1. Identify the disk by-id path and bay number (same as provisioning)
-2. Mount the disk (note, for a full list of options, run with the `--help` flag)
-```bash
-sudo provisioning/scripts/mount-new-disk.sh --disk /dev/disk/by-id/XXXX --bay 1
-```
-3. Repeat for each data disk that needs to be mounted
-
-NOTE: this is only necessary during installation
-
 ## Notes
 
 Provisioning does not:
