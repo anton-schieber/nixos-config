@@ -18,7 +18,6 @@ concrete steps documented below.
     - (Optional) Enable SSH access
     - Download the nix-config Git repository
 2. Disk provisioning
-    - (Optional) Provision data disks
     - Provision the boot SSD
 3. Installation
     - Generate hardware configuration
@@ -84,19 +83,12 @@ git clone https://github.com/anton-schieber/nix-config.git
 git config --global credential.helper cache
 ```
 
-## 4. (Optional) Provision data disks
-
-If you are provisioning data disks during installation, execute the
-[data disk provisioning](provisioning/README.md#data-disk-provisioning) steps **before**
-provisioning the boot SSD. This allows the boot disk provisioning to set up the correct
-mount hierarchy at `/mnt`.
-
-## 5. Provision the boot SSD
+## 4. Provision the boot SSD
 
 From the installer environment, execute the
 [boot SSD provisioning](provisioning/README.md#boot-ssd-provisioning) steps.
 
-## 6. Generate hardware configuration
+## 5. Generate hardware configuration
 
 From the installer environment:
 1. Generate the hardware configuration:
@@ -121,7 +113,7 @@ sudo nixos-generate-config --root /mnt
 
 **NOTE**: the generated `/mnt/etc/nixos/configuration.nix` is not used.
 
-## 7. Install NixOS
+## 6. Install NixOS
 
 From the installer environment, run the NixOS installer using the flake output for the
 target machine.  This installs:
@@ -132,7 +124,7 @@ target machine.  This installs:
 sudo nixos-install --flake .#<machinename>
 ```
 
-## 8. Reboot into the installed system
+## 7. Reboot into the installed system
 
 From the installer environment:
 1. Reboot the machine after the installation is complete:
@@ -142,9 +134,9 @@ reboot
 2. Remove the installer ISO.
 3. Wait for boot to complete into the installed NixOS environment.
 
-## 9. First boot verification
+## 8. First boot verification
 
-From the installer environment:
+From the installed system:
 1. Log in
 2. Verify mounts:
 ```bash
@@ -156,18 +148,19 @@ hostname
 ```
 4. Verify services and networking as required
 
+## 9. Provision data disks
+
+**After** successful installation and first boot, provision data disks from the running
+system. Execute the
+[data disk provisioning](provisioning/README.md#data-disk-provisioning) steps for each
+data disk you want to add.
+
+This must be done after installation to avoid mount conflicts during the installation
+process.
+
 ## Notes and principles
 
 - Provisioning tools are one-time, destructive, and manual by design
 - Runtime mounts, snapRAID, and mergerfs are configured declaratively
 - hardware.nix is machine-specific and generated once per machine
 - Reinstallation should never require reprovisioning data disks
-
-## Next steps
-
-After installation, proceed to:
-- Configure runtime storage mounts
-- Enable snapRAID and mergerfs
-- Configure monitoring, backups, and services
-
-These steps are intentionally outside the scope of this document.
