@@ -10,4 +10,4 @@
 #       ];
 #
 
-import ./bay { inherit lib; } 2
+import ./bay 2

@@ -18,7 +18,7 @@ bayNumber:
 {
   imports = [
     ../default.nix
-  ]
+  ];
 
   # Apply consistent mount options for /srv/disks/bay{N} filesystem
   fileSystems."/srv/disks/bay${toString bayNumber}" = {
