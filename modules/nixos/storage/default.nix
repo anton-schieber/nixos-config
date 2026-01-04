@@ -11,7 +11,7 @@
 #       nixos.storage.dataBays = [ 2 3 ];
 #
 
-{ ... }:
+{ config, lib, ... }:
 
 {
   imports = [
