@@ -45,6 +45,7 @@
       "data${toString disk.bay}" = {
         device = disk.device;
         type = "disk";
+        wipe = true;
         content = {
           type = "gpt";
           partitions = {
