@@ -115,13 +115,17 @@ sudo nixos-generate-config --root /mnt
 
 ## 6. Install NixOS
 
-From the installer environment, run the NixOS installer using the flake output for the
-target machine.  This installs:
-- NixOS
-- Bootloader
-- Machine-specific configuration
+From the installer environment:
+1. Run the NixOS installer using the flake output for the target machine.  This installs:
+    - NixOS
+    - Bootloader
+    - Machine-specific configuration
 ```bash
 sudo nixos-install --flake .#<machinename>
+```
+2. Set the password for the admin user USER
+```bash
+sudo nixos-enter --root /mnt -c `passwd USER`
 ```
 
 ## 7. Reboot into the installed system
@@ -146,7 +150,14 @@ findmnt
 ```bash
 hostname
 ```
-4. Verify services and networking as required
+
+## 9. Clone the repository
+
+From the installer environment:
+1. Clone the repository
+```bash
+git clone https://github.com/anton-schieber/nix-config.git ~/.config/nix
+```
 
 ## 9. Provision data disks
 
