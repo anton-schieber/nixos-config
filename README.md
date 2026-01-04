@@ -116,6 +116,7 @@ scripts/update-system.sh
 
 - **Boot SSD**: NVMe with btrfs subvolumes for root, nix, and logs
 - **Data Disks**: Individual ext4 disks mounted at `/srv/disks/data{N}`
+- **Data Pool**: All data disks are pooled into a single mount at `/srv/storage`
 
 ### SnapRAID Configuration
 
@@ -126,20 +127,13 @@ SnapRAID provides snapshot-based parity protection across multiple data disks:
 - **Content files**: Stored on root filesystem and all data disks
 - **Configuration**: Managed declaratively in `machines/<machine>/storage.nix`
 
-Example storage configuration:
-```nix
-{
-  imports = [
-    ../../modules/nixos/storage/snapraid.nix
-    ../../modules/nixos/storage/filesystem/data1.nix
-    ../../modules/nixos/storage/filesystem/data2.nix
-    ../../modules/nixos/storage/filesystem/data3.nix
-  ];
+### MergerFS Configuration
 
-  nixos.storage.snapraid.parityBays = [ 1 ];
-  nixos.storage.snapraid.dataBays = [ 2 3 ];
-}
-```
+MergerFS pools all data disks into a single unified filesystem at `/srv/storage`:
+
+- **Unified access**: All data disks are accessible via `/srv/storage`.
+- **World-writable**: The mount point is created with permissions `0777` to allow all users and services to write.
+- **Configuration**: Managed declaratively in `machines/<machine>/storage.nix`.
 
 ## Key Features
 

@@ -89,10 +89,6 @@ let
   '';
 in
 {
-  imports = [
-    ./default.nix
-  ];
-
   options.nixos.storage.snapraid = {
     parityBays = lib.mkOption {
       type = lib.types.listOf lib.types.int;
