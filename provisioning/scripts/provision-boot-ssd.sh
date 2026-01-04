@@ -248,6 +248,17 @@ echo
 echo "Disabling swap on target device..."
 sudo swapoff "${DISK_PATH}"* 2>/dev/null || true
 
+# Wipe any existing partitions to ensure clean state
+echo
+echo "Wiping existing partitions (if any)..."
+for PARTITION_PATH in "${DISK_PATH}"-part*; do
+    if [ -e "${PARTITION_PATH}" ]; then
+        echo "  Wiping ${PARTITION_PATH}..."
+        sudo wipefs --all --force "${PARTITION_PATH}" || \
+            echo "  Failed to wipe ${PARTITION_PATH} (may not exist)"
+    fi
+done
+
 # Wipe the disk completely: partition tables and filesystem signatures
 echo
 echo "Wiping partition table and filesystem signatures..."
