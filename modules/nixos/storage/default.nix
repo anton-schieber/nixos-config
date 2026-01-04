@@ -42,8 +42,8 @@
   };
 
   config = {
-    nixos.storage.snapraid.parityBays = nixos.storage.parityBays;
-    nixos.storage.snapraid.dataBays = nixos.storage.dataBays;
-    nixos.storage.mergerfs.dataBays = nixos.storage.dataBays;
+    storage.snapraid.parityBays = config.nixos.storage.parityBays;
+    storage.snapraid.dataBays = config.nixos.storage.dataBays;
+    storage.mergerfs.dataBays = config.nixos.storage.dataBays;
   };
 }
