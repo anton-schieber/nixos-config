@@ -178,13 +178,7 @@ UMOUNT_CMD=(
     sudo umount "${MNT_MOUNT_POINT}"
 )
 MOUNT_CMD=(
-    sudo nix
-        --experimental-features "nix-command flakes"
-        run github:nix-community/disko
-        --
-        --mode mount
-        --arg disk "{ device = \"${DISK_PATH}\"; bay = ${BAY}; }"
-        "$DISKO_FILE"
+    sudo mount /dev/disk/by-label/data${BAY} "${MOUNT_POINT}"
 )
 
 # Display configuration summary
@@ -225,8 +219,9 @@ echo
 echo "Unmounting from ${MNT_MOUNT_POINT}..."
 "${UMOUNT_CMD[@]}" || die "Failed to unmount ${MNT_MOUNT_POINT}"
 
-# Remount at actual location using disko mount mode
-echo "Mounting at ${MOUNT_POINT} using disko mount mode..."
+# Remount at actual location using mount command
+echo "Mounting at ${MOUNT_POINT}..."
+sudo mkdir -p "${MOUNT_POINT}"
 "${MOUNT_CMD[@]}" || die "Failed to mount at ${MOUNT_POINT}"
 
 # Complete!
