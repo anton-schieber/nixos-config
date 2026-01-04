@@ -165,6 +165,15 @@ MOUNT_POINT="/srv/disks/data${BAY}"
 MNT_MOUNT_POINT="/mnt${MOUNT_POINT}"
 
 # Create commands
+DESTROY_CMD=(
+    sudo nix
+        --experimental-features "nix-command flakes"
+        run github:nix-community/disko
+        --
+        --mode destroy
+        --arg disk "{ device = \"${DISK_PATH}\"; bay = ${BAY}; }"
+        "$DISKO_FILE"
+)
 CMD=(
     sudo nix
         --experimental-features "nix-command flakes"
@@ -202,12 +211,10 @@ if [ "$YES" -ne 1 ]; then
     confirm "About to provision a new data disk." || { echo "Aborted."; exit 1; }
 fi
 
-# Wipe the disk completely: partition tables and filesystem signatures
+# Destroy the disk completely using disko destroy mode
 echo
-echo "Wiping partition table and filesystem signatures..."
-sudo sgdisk --zap-all "$DISK_PATH" || die "Failed to zap partition table on $DISK_PATH"
-sudo wipefs --all --force "$DISK_PATH" || \
-    die "Failed to wipe filesystem signatures on $DISK_PATH"
+echo "Destroying disk..."
+"${DESTROY_CMD[@]}"
 
 # Provision the new data disk
 echo
