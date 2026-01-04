@@ -21,13 +21,9 @@
 
 {
   imports = [
-    ../../modules/nixos/storage/snapraid.nix
-    ../../modules/nixos/storage/filesystem/data1.nix
-    ../../modules/nixos/storage/filesystem/data2.nix
-    ../../modules/nixos/storage/filesystem/data3.nix
+    ../../modules/nixos/storage
   ];
 
-  # SnapRAID configuration
-  nixos.storage.snapraid.parityBays = [ 1 ];
-  nixos.storage.snapraid.dataBays = [ 2 3 ];
+  nixos.storage.parityBays = [ 1 ];
+  nixos.storage.dataBays = [ 2 3 ];
 }
