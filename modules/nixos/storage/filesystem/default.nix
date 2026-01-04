@@ -12,7 +12,5 @@
 { ... }:
 
 {
-  imports = [
-    ../default.nix
-  ];
+  # # No filesystem features are configured by default
 }
