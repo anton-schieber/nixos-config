@@ -162,12 +162,13 @@ fi
 
 # Check if disk or any of its partitions are mounted
 REAL_DISK_PATH=$(realpath "$DISK_PATH")
-if findmnt --source "${REAL_DISK_PATH}"* >/dev/null 2>&1; then
+MOUNTED_PARTS=$(lsblk -n -o MOUNTPOINT "${REAL_DISK_PATH}" | grep -v '^$' || true)
+if [ -n "$MOUNTED_PARTS" ]; then
     echo "ERROR: Disk or its partitions are currently mounted:" >&2
-    findmnt --source "${REAL_DISK_PATH}"* >&2
+    lsblk -o NAME,MOUNTPOINT,FSTYPE "${REAL_DISK_PATH}" >&2
     echo "" >&2
     echo "Unmount all partitions before provisioning:" >&2
-    findmnt --source "${REAL_DISK_PATH}"* --noheadings --output TARGET | while read -r mnt; do
+    echo "$MOUNTED_PARTS" | while read -r mnt; do
         echo "  sudo umount $mnt" >&2
     done
     exit 1
