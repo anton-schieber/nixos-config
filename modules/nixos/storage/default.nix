@@ -11,7 +11,7 @@
 #       nixos.storage.dataBays = [ 2 3 ];
 #
 
-{ lib, ... }:
+{ ... }:
 
 {
   imports = [
@@ -42,8 +42,8 @@
   };
 
   config = {
-    nixos.storage.snapraid.parityBays = config.nixos.storage.parityBays;
-    nixos.storage.snapraid.dataBays = config.nixos.storage.dataBays;
-    nixos.storage.mergerfs.dataBays = config.nixos.storage.dataBays;
+    nixos.storage.snapraid.parityBays = nixos.storage.parityBays;
+    nixos.storage.snapraid.dataBays = nixos.storage.dataBays;
+    nixos.storage.mergerfs.dataBays = nixos.storage.dataBays;
   };
 }
