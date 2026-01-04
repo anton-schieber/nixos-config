@@ -57,6 +57,25 @@ sudo provisioning/scripts/provision-boot-ssd.sh --disk /dev/disk/by-id/nvme-XXXX
 # With optional subvolumes
 sudo provisioning/scripts/provision-boot-ssd.sh --disk /dev/disk/by-id/nvme-XXXX --create-log
 ```
+3. Generate the hardware configuration:
+```bash
+sudo nixos-generate-config --root /mnt
+```
+4. Copy the generated hardware configuration into the corresponding machine directory,
+   where `MACHINE` is the name of the corresponding machine.  This can be done either on
+   the local machine or within the installer environment.  Note, in either case, the
+   copied file will need to be committed into Git, using the typical branch, pull request,
+   and merge process which is not outlined here.
+    - Local machine:
+    ```bash
+    scp nixos@IPADDRESS:/mnt/etc/nixos/hardware-configuration.nix \
+    machines/MACHINE/generated/hardware.nix
+    ```
+    - Installer environment:
+    ```bash
+    cp /mnt/etc/nixos/hardware-configuration.nix \
+        REPO/machines/MACHINE/generated/hardware.nix
+    ```
 
 ## Data disk provisioning
 
@@ -91,6 +110,25 @@ ls -l /dev/disk/by-id/ | grep sda
 ```bash
 sudo provisioning/scripts/provision-data-disk.sh --disk /dev/disk/by-id/XXXX --bay 1
 ```
+6. Generate the new hardware-configuration.nix:
+```bash
+sudo nixos-generate-config
+```
+7. Copy the generated hardware configuration into the corresponding machine directory,
+   where `MACHINE` is the name of the corresponding machine.  This can be done either on
+   the local machine or within the remote machine.  Note, in either case, the copied file
+   will need to be committed into Git, using the typical branch, pull request, and merge
+   process which is not outlined here.
+    - Local machine:
+    ```bash
+    scp USER@IPADDRESS:/etc/nixos/hardware-configuration.nix \
+    machines/MACHINE/generated/hardware.nix
+    ```
+    - Remote machine:
+    ```bash
+    cp /etc/nixos/hardware-configuration.nix \
+        ~/.config/nix/machines/MACHINE/generated/hardware.nix
+    ```
 
 ## Notes
 

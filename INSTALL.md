@@ -20,7 +20,6 @@ concrete steps documented below.
 2. Disk provisioning
     - Provision the boot SSD
 3. Installation
-    - Generate hardware configuration
     - Install NixOS using the flake
 4. Verification
     - Reboot into the installed system
@@ -88,32 +87,7 @@ git config --global credential.helper cache
 From the installer environment, execute the
 [boot SSD provisioning](provisioning/README.md#boot-ssd-provisioning) steps.
 
-## 5. Generate hardware configuration
-
-From the installer environment:
-1. Generate the hardware configuration:
-```bash
-sudo nixos-generate-config --root /mnt
-```
-2. Copy the generated hardware configuration into the corresponding machine directory,
-   where `MACHINE` is the name of the corresponding machine.  This can be done either on
-   the local machine or within the installer environment.  Note, in either case, the
-   copied file will need to be committed into Git, using the typical branch, pull request,
-   and merge process which is not outlined here.
-    - Local machine:
-    ```bash
-    scp nixos@IPADDRESS:/mnt/etc/nixos/hardware-configuration.nix \
-    machines/MACHINE/generated/hardware.nix
-    ```
-    - Installer environment:
-    ```bash
-    cp /mnt/etc/nixos/hardware-configuration.nix \
-        /home/nixos/nix-config/machines/MACHINE/generated/hardware.nix
-    ```
-
-**NOTE**: the generated `/mnt/etc/nixos/configuration.nix` is not used.
-
-## 6. Install NixOS
+## 5. Install NixOS
 
 From the installer environment:
 1. Run the NixOS installer using the flake output for the target machine.  This installs:
@@ -128,7 +102,7 @@ sudo nixos-install --flake .#<machinename>
 sudo nixos-enter --root /mnt -c `passwd USER`
 ```
 
-## 7. Reboot into the installed system
+## 6. Reboot into the installed system
 
 From the installer environment:
 1. Reboot the machine after the installation is complete:
@@ -138,7 +112,7 @@ reboot
 2. Remove the installer ISO.
 3. Wait for boot to complete into the installed NixOS environment.
 
-## 8. First boot verification
+## 7. First boot verification
 
 From the installed system:
 1. Log in
@@ -151,7 +125,7 @@ findmnt
 hostname
 ```
 
-## 9. Clone the repository
+## 8. Clone the repository
 
 From the installer environment:
 1. Clone the repository
