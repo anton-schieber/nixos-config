@@ -21,11 +21,11 @@
     ./generated/hardware.nix
 
     # Machine-specific
-    # ./compatibility.nix
+    ./compatibility.nix
     ./home-manager.nix
     ./programs.nix
     ./services.nix
-    # ./storage.nix
+    ./storage.nix
     ./system.nix
     ./users.nix
   ];
