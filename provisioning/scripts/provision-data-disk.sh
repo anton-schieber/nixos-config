@@ -147,13 +147,28 @@ case "$BAY" in
     *) usage; die "Invalid bay '$BAY'. Must be an integer 1-8." ;;
 esac
 
-# Create disko command
+MOUNT_POINT="/srv/disks/data${BAY}"
+MNT_MOUNT_POINT="/mnt${MOUNT_POINT}"
+
+# Create commands
 CMD=(
     sudo nix
         --experimental-features "nix-command flakes"
         run github:nix-community/disko
         --
         --mode disko
+        --arg disk "{ device = \"${DISK_PATH}\"; bay = ${BAY}; }"
+        "$DISKO_FILE"
+)
+UMOUNT_CMD=(
+    sudo umount "${MNT_MOUNT_POINT}"
+)
+MOUNT_CMD=(
+    sudo nix
+        --experimental-features "nix-command flakes"
+        run github:nix-community/disko
+        --
+        --mode mount
         --arg disk "{ device = \"${DISK_PATH}\"; bay = ${BAY}; }"
         "$DISKO_FILE"
 )
@@ -191,6 +206,16 @@ echo
 echo "Running disko..."
 "${CMD[@]}"
 
+# Unmount from /mnt
+echo
+echo "Unmounting from ${MNT_MOUNT_POINT}..."
+"${UMOUNT_CMD[@]}" || die "Failed to unmount ${MNT_MOUNT_POINT}"
+
+# Remount at actual location using disko mount mode
+echo "Mounting at ${MOUNT_POINT} using disko mount mode..."
+"${MOUNT_CMD[@]}" || die "Failed to mount at ${MOUNT_POINT}"
+
 # Complete!
 echo
 echo "Data disk provisioning complete."
+echo "  Mounted at: ${MOUNT_POINT}"
