@@ -55,7 +55,7 @@
                 format = "ext4";
                 mountpoint = "/srv/disks/data${toString disk.bay}";
                 mountOptions = [ "defaults" "noatime" "nofail" ];
-                extraArgs = [ "-L" "data${toString disk.bay}" ];
+                extraArgs = [ "-F" "-L" "data${toString disk.bay}" ];
               };
             };
           };
