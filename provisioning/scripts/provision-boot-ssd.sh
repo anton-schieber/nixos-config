@@ -160,6 +160,16 @@ if [ ! -f "$DISKO_FILE" ]; then
     die "Missing disko file: $DISKO_FILE"
 fi
 
+# Check if disk or any of its partitions are mounted
+if findmnt --source "${DISK_PATH}"* >/dev/null 2>&1; then
+    echo "ERROR: Disk or its partitions are currently mounted:" >&2
+    findmnt --source "${DISK_PATH}"* >&2
+    echo "" >&2
+    echo "Unmount all partitions before provisioning:" >&2
+    echo "  sudo umount ${DISK_PATH}*" >&2
+    exit 1
+fi
+
 # Build subvolumes argument if any subvolume is enabled
 SUBVOLUMES_ARG=()
 if [ "$CREATE_LOG" = true ] || [ "$CREATE_NIX" = true ] || [ "$CREATE_PERSIST" = true ] ||
